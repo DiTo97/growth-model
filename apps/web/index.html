@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Growth Model Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-100">
+    <main class="mx-auto max-w-4xl p-8">
+      <section class="rounded-2xl border border-slate-700 bg-slate-900/80 p-6 shadow-2xl transition hover:scale-[1.01]">
+        <h1 class="text-3xl font-semibold tracking-tight">Growth Model Console</h1>
+        <p class="mt-2 text-slate-300">Supabase-authenticated shell for segments, rates, and simulations.</p>
+        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+          <input id="email" class="rounded-md bg-slate-800 px-3 py-2" placeholder="Email" />
+          <button id="login" class="rounded-md bg-emerald-500 px-4 py-2 font-medium text-slate-900 transition hover:bg-emerald-400">Sign in with magic link</button>
+        </div>
+        <div class="mt-6">
+          <button id="load" class="rounded-md bg-blue-500 px-4 py-2 font-medium transition hover:bg-blue-400">Load Metrics</button>
+          <pre id="output" class="mt-4 overflow-auto rounded-lg bg-slate-950 p-4 text-xs"></pre>
+        </div>
+      </section>
+    </main>
+    <script>
+      const SUPABASE_URL = localStorage.getItem("supabase_url") || "";
+      const SUPABASE_ANON_KEY = localStorage.getItem("supabase_anon_key") || "";
+      const API_BASE = localStorage.getItem("growth_api_base") || "http://localhost:8000";
+      const API_KEY = localStorage.getItem("growth_api_key") || "dev-api-key";
+      const COMPANY_ID = localStorage.getItem("growth_company_id") || "demo";
+
+      const output = document.getElementById("output");
+      const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+      document.getElementById("login").onclick = async () => {
+        if (!supabase) {
+          output.textContent = "Set supabase_url and supabase_anon_key in localStorage.";
+          return;
+        }
+        const email = document.getElementById("email").value;
+        const { error } = await supabase.auth.signInWithOtp({ email });
+        output.textContent = error ? error.message : "Magic link sent.";
+      };
+
+      document.getElementById("load").onclick = async () => {
+        const res = await fetch(`${API_BASE}/v1/metrics/distribution?company_id=${COMPANY_ID}`, {
+          headers: { "x-api-key": API_KEY },
+        });
+        output.textContent = JSON.stringify(await res.json(), null, 2);
+      };
+    </script>
+  </body>
+</html>

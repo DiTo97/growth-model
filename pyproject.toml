@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "growth-model"
+version = "0.1.0"
+description = "Growth model service inspired by Duolingo state transitions"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115.0",
+  "uvicorn>=0.30.0",
+  "sqlalchemy>=2.0.0",
+  "pydantic>=2.7.0",
+  "typer>=0.12.0",
+  "httpx>=0.27.0"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0"
+]
+
+[project.scripts]
+growth-model-cli = "growth_model_cli.main:app"
+
+[tool.setuptools]
+packages = [
+  "growth_model_core",
+  "growth_model_api",
+  "growth_model_cli",
+  "growth_model_sdk"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
