@@ -4,50 +4,53 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Growth Model Console</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+    <script src="./config.js"></script>
   </head>
-  <body class="min-h-screen bg-slate-950 text-slate-100">
-    <main class="mx-auto max-w-4xl p-8">
-      <section class="rounded-2xl border border-slate-700 bg-slate-900/80 p-6 shadow-2xl transition hover:scale-[1.01]">
-        <h1 class="text-3xl font-semibold tracking-tight">Growth Model Console</h1>
-        <p class="mt-2 text-slate-300">Supabase-authenticated shell for segments, rates, and simulations.</p>
-        <div class="mt-4 grid gap-3 sm:grid-cols-2">
-          <input id="email" class="rounded-md bg-slate-800 px-3 py-2" placeholder="Email" />
-          <button id="login" class="rounded-md bg-emerald-500 px-4 py-2 font-medium text-slate-900 transition hover:bg-emerald-400">Sign in with magic link</button>
+  <body>
+    <header>
+      <h1>Growth Model</h1>
+      <div id="auth">
+        <form id="login" hidden>
+          <input id="email" type="email" placeholder="you@company.com" required />
+          <button>Send magic link</button>
+        </form>
+        <span id="who"></span>
+        <button id="logout" hidden>Sign out</button>
+      </div>
+    </header>
+    <main>
+      <p id="status" role="status"></p>
+
+      <section>
+        <h2>DAU / WAU / MAU</h2>
+        <svg id="chart" viewBox="0 0 800 240" preserveAspectRatio="none" aria-label="Active users over time"></svg>
+        <div class="legend"><span class="dau">DAU</span><span class="wau">WAU</span><span class="mau">MAU</span></div>
+      </section>
+
+      <section class="grid">
+        <div>
+          <h2>Fitted rates <small id="asof"></small></h2>
+          <table id="rates"></table>
         </div>
-        <div class="mt-6">
-          <button id="load" class="rounded-md bg-blue-500 px-4 py-2 font-medium transition hover:bg-blue-400">Load Metrics</button>
-          <pre id="output" class="mt-4 overflow-auto rounded-lg bg-slate-950 p-4 text-xs"></pre>
+        <div>
+          <h2>What if…</h2>
+          <form id="sim">
+            <label>Horizon (days) <input name="horizon" type="number" value="365" min="1" max="3650" /></label>
+            <div id="overrides"></div>
+            <button>Simulate</button>
+          </form>
+          <p id="simresult"></p>
         </div>
       </section>
+
+      <section>
+        <h2>Lever ranking <small>2% month-over-month improvement, 3-year DAU impact</small></h2>
+        <button id="levers">Run lever analysis</button>
+        <table id="levertable"></table>
+      </section>
     </main>
-    <script>
-      const SUPABASE_URL = localStorage.getItem("supabase_url") || "";
-      const SUPABASE_ANON_KEY = localStorage.getItem("supabase_anon_key") || "";
-      const API_BASE = localStorage.getItem("growth_api_base") || "http://localhost:8000";
-      const API_KEY = localStorage.getItem("growth_api_key") || "dev-api-key";
-      const COMPANY_ID = localStorage.getItem("growth_company_id") || "demo";
-
-      const output = document.getElementById("output");
-      const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-
-      document.getElementById("login").onclick = async () => {
-        if (!supabase) {
-          output.textContent = "Set supabase_url and supabase_anon_key in localStorage.";
-          return;
-        }
-        const email = document.getElementById("email").value;
-        const { error } = await supabase.auth.signInWithOtp({ email });
-        output.textContent = error ? error.message : "Magic link sent.";
-      };
-
-      document.getElementById("load").onclick = async () => {
-        const res = await fetch(`${API_BASE}/v1/metrics/distribution?company_id=${COMPANY_ID}`, {
-          headers: { "x-api-key": API_KEY },
-        });
-        output.textContent = JSON.stringify(await res.json(), null, 2);
-      };
-    </script>
+    <script type="module" src="./app.js"></script>
   </body>
 </html>

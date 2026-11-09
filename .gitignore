@@ -1,9 +1,27 @@
+# Python
 __pycache__/
-*.pyc
-.pytest_cache/
-*.db
+*.py[cod]
 .venv/
-node_modules/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
 dist/
 
-*.egg-info/
+# Node
+node_modules/
+
+# Local data & secrets
+*.db
+*.db-*
+.env
+.env.*
+!.env.example
+apps/web/config.js
+
+# Agents / editors (shared agent config is committed; personal overrides are not)
+.claude/settings.local.json
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store

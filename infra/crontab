@@ -1,0 +1,4 @@
+# Scheduling for growth-model-server (container or host with DATABASE_URL set).
+# Daily: segment every tenant through yesterday (UTC). Weekly: refit transition rates.
+15 0 * * *  growth-model-server daily  >> /var/log/growth-model.log 2>&1
+45 0 * * 1  growth-model-server weekly >> /var/log/growth-model.log 2>&1

@@ -1,37 +1,54 @@
-[build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
-
+# Workspace root. Each member under packages/ and apps/ is its own distribution.
 [project]
-name = "growth-model"
-version = "0.1.0"
-description = "Growth model service inspired by Duolingo state transitions"
-readme = "README.md"
+name = "growth-model-workspace"
+version = "0.0.0"
 requires-python = ">=3.11"
 dependencies = [
-  "fastapi>=0.115.0",
-  "uvicorn>=0.30.0",
-  "sqlalchemy>=2.0.0",
-  "pydantic>=2.7.0",
-  "typer>=0.12.0",
-  "httpx>=0.27.0"
+  "growth-model-core",
+  "growth-model-sdk",
+  "growth-model-api",
+  "growth-model-cli",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
-  "pytest>=8.0.0"
+  "pytest>=8.3",
+  "ruff>=0.8",
+  "pyright>=1.1.390",
 ]
 
-[project.scripts]
-growth-model-cli = "growth_model_cli.main:app"
+[tool.uv]
+package = false
 
-[tool.setuptools]
-packages = [
-  "growth_model_core",
-  "growth_model_api",
-  "growth_model_cli",
-  "growth_model_sdk"
-]
+[tool.uv.workspace]
+members = ["packages/core", "packages/sdk-python", "apps/api", "apps/cli"]
+
+[tool.uv.sources]
+growth-model-core = { workspace = true }
+growth-model-sdk = { workspace = true }
+growth-model-api = { workspace = true }
+growth-model-cli = { workspace = true }
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["packages/core/tests", "packages/sdk-python/tests", "apps/api/tests", "apps/cli/tests"]
+addopts = "-q --import-mode=importlib"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["packages/sdk-js", "*.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "S", "RUF"]
+ignore = ["S101", "B008", "RUF012"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S", "B"]
+
+[tool.pyright]
+include = ["packages/core/src", "packages/sdk-python/src", "apps/api/src", "apps/cli/src"]
+pythonVersion = "3.11"
+typeCheckingMode = "standard"
+
+[tool.ruff.lint.isort]
+known-first-party = ["growth_model_core", "growth_model_sdk", "growth_model_api", "growth_model_cli"]

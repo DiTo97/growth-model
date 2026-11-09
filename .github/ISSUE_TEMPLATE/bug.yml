@@ -1,0 +1,11 @@
+name: Bug report
+description: Something is wrong
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes: { label: What happened, description: Include commands, inputs and output }
+    validations: { required: true }
+  - type: input
+    id: component
+    attributes: { label: Component, placeholder: core / api / cli / sdk-python / sdk-js / web }

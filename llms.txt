@@ -1,0 +1,19 @@
+# growth-model
+
+> Open-source implementation of Duolingo's growth model: classify users daily into 7 activity states (new, current, reactivated, resurrected, at-risk WAU, at-risk MAU, dormant), fit transition rates (CURR, NURR, iWAURR, …), and simulate DAU/WAU/MAU under what-if rate changes. Ships a zero-dependency Python core, a multi-tenant FastAPI service, a CLI, Python/JS ingestion SDKs, and a web console.
+
+## Docs
+- [Model specification](docs/model.md): states, rates, simulation equations, lever analysis, deviations from the source
+- [Architecture](docs/architecture.md): components, data flow, tenancy and auth
+- [Agent guide](AGENTS.md): layout, commands, rules for coding agents
+- [CLI skill](skills/growth-model-cli/SKILL.md): how an AI agent should drive the `growth-model` CLI
+
+## Packages
+- [Core library](packages/core/README.md): `GrowthModel.from_activity(rows).simulate(...)`
+- [Python SDK](packages/sdk-python/README.md): `growth_model_sdk.active(user_id)`
+- [JS SDK](packages/sdk-js/README.md): `createClient({apiKey}).active(userId)`
+- [API](apps/api/README.md): REST endpoints and operations
+- [CLI](apps/cli/README.md): `growth-model fit|metrics|simulate|levers|remote`
+
+## Optional
+- [Source article](https://blog.duolingo.com/growth-model-duolingo/)

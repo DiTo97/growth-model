@@ -1,39 +1,67 @@
 # growth-model
 
-Monorepo scaffold for a Duolingo-style growth model service.
+An open-source take on **[Duolingo's growth model](https://blog.duolingo.com/growth-model-duolingo/)**:
+classify every user into one of 7 activity states each day, fit the transition rates between
+states (CURR, NURR, iWAURR, …), and simulate how DAU/WAU/MAU respond when you move a rate. That
+tells you *which retention metric a team should own*.
 
-## Components
+```bash
+uv run growth-model demo-data demo.csv
+uv run growth-model levers demo.csv --table
+```
+```
+lever         direction  dau_impact
+curr          increase   4.2270      ← improving current-user retention dominates
+resurrection  increase   0.6007
+new_users     increase   0.5957
+iwaurr        increase   0.4198
+...
+```
 
-- `growth_model_core`: segmentation, transition rates, aggregate metrics, simulation engine.
-- `growth_model_api`: FastAPI service for ingestion, computation, analytics, and simulations.
-- `growth_model_cli`: Typer CLI for ingest/compute/metrics/simulate loops.
-- `growth_model_sdk`: lightweight SDK with `log_active_user(...)` integration endpoint.
-- `apps/web`: web console shell with Supabase auth hookup + metrics fetch UI.
-- `infra/sql/schema.sql`: Postgres-compatible schema.
-- `skills/growth-model-cli/SKILL.md`: Agent skill instructions for CLI-first workflows.
+## What's inside
+
+| | |
+| --- | --- |
+| [`packages/core`](packages/core) | Zero-dependency Python library: segmentation, rate fitting, simulation, lever analysis |
+| [`packages/sdk-python`](packages/sdk-python) · [`packages/sdk-js`](packages/sdk-js) | One-call SDKs: `active(user_id)`. Non-blocking, batched, never throws |
+| [`apps/api`](apps/api) | Multi-tenant FastAPI service with daily/weekly jobs, simulations and levers |
+| [`apps/cli`](apps/cli) | `growth-model` CLI. Works offline on a CSV or against the API, JSON-first for agents |
+| [`apps/web`](apps/web) | Build-free console with Supabase auth |
+| [`infra`](infra) | Postgres DDL, warehouse-native segmentation SQL, Docker, compose, crontab |
+| [`skills`](skills) | Agent Skill for driving the CLI |
+
+Spec: [docs/model.md](docs/model.md) · Architecture: [docs/architecture.md](docs/architecture.md) ·
+Agents: [AGENTS.md](AGENTS.md)
 
 ## Quickstart
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -e .[dev]
-uvicorn growth_model_api.main:app --reload
+uv sync
+export GROWTH_MODEL_ADMIN_TOKEN=change-me
+KEY=$(uv run growth-model-server create-key --company-id acme --product-id app --kind secret)
+uv run growth-model-server serve &
+
+export GROWTH_MODEL_API_KEY=$KEY
+uv run growth-model demo-data demo.csv --end $(date -u -d yesterday +%F)
+uv run growth-model remote ingest demo.csv
+uv run growth-model remote segment && uv run growth-model remote fit
+uv run growth-model remote simulate --horizon 365 --set curr=0.75 --table
 ```
 
-In another shell:
+In your product:
 
-```bash
-growth-model-cli ingest --company-id acme --product-id mobile --user-id u1 --occurred-at 2026-01-01T00:00:00Z
-growth-model-cli compute --company-id acme --start-date 2026-01-01 --end-date 2026-01-08
-growth-model-cli metrics --company-id acme
-growth-model-cli simulate --company-id acme --horizon-days 30 --override 'current_users->at_risk_wau=0.1'
+```python
+import growth_model_sdk as gm
+gm.init(api_key="gm_pub_...", base_url="https://growth.example.com")
+gm.active(user.id, metadata={"platform": "ios"})
 ```
 
-## API key management
+```ts
+import { createClient } from "@growth-model/sdk";
+const gm = createClient({ apiKey: "gm_pub_...", baseUrl: "https://growth.example.com" });
+gm.active(user.id);
+```
 
-- Runtime ingestion and analytics auth: `x-api-key` (`GROWTH_MODEL_API_KEY` fallback for local dev).
-- Admin key provisioning endpoints: `x-admin-key` (`GROWTH_MODEL_ADMIN_KEY`).
-- Admin routes:
-  - `POST /v1/admin/api-keys`
-  - `GET /v1/admin/api-keys`
+## Development
+
+`just setup && just check` (or see [CONTRIBUTING.md](CONTRIBUTING.md)).

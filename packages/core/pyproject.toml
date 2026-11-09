@@ -1,0 +1,12 @@
+[project]
+name = "growth-model-core"
+version = "0.1.0"
+description = "Dependency-free implementation of Duolingo's growth model: segmentation, rate fitting, simulation, lever analysis."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+keywords = ["growth", "retention", "markov", "dau", "analytics"]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
